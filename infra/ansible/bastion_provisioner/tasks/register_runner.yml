@@ -9,7 +9,18 @@
     name: "{{ github_runner_user }}"
     group: "{{ github_runner_group }}"
     home: "{{ github_runner_home_dir }}"
+    shell: /bin/bash
     state: present
+  become: true
+
+- name: Ensure users are in the docker group
+  ansible.builtin.user:
+    name: "{{ item }}"
+    groups: docker
+    append: yes
+  with_list:
+    - "{{ github_runner_user }}"
+    - ubuntu
   become: true
 
 - name: Download GitHub Actions software
@@ -64,6 +75,7 @@
 - name: Setup github runner systemd unit
   ansible.builtin.shell: |
     ./svc.sh install '{{ github_runner_user }}' && ./svc.sh start
+  when: github_credentials_file.stat.exists == False
   args:
     chdir: "{{ github_runner_home_dir }}/actions-runner/"
   become: true
