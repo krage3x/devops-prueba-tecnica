@@ -20,4 +20,5 @@ ci_common_packages:
   - python3
   - jq
   - acl
+  - gpg
   - lsb-release

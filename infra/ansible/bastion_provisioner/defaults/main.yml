@@ -10,3 +10,4 @@ github_personal_access_token: ""
 github_repo_url: ""
 github_runner_name: ""
 github_runner_labels: []
+kubectl_version: ""

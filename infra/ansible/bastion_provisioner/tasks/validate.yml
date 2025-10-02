@@ -1,4 +1,4 @@
-- name: Validate inputs
+- name: Validate and initialize inputs
   import_tasks: validate_common.yml
   vars:
     vars_to_validate:
@@ -6,6 +6,7 @@
       - github_personal_access_token
       - github_runner_name
       - github_runner_labels
+      - kubectl_version
     variables_to_set:
       - var_name: github_runner_user
         var_value: "{{ github_runner_user_name | default(github_runner_user_default_name, true) }}"
@@ -25,6 +26,34 @@
 - name: Extract filename from URL
   ansible.builtin.set_fact:
     github_runner_filename: "{{ github_runner_release_url.split('/')[-1] }}"
+
+
+
+- name: Set Kubernetes repo info based on OS family
+  ansible.builtin.set_fact:
+    kubernetes_repo:
+      url: >-
+        {% if ansible_os_family == 'Debian' %}
+        https://pkgs.k8s.io/core:/stable:/v{{ kubectl_version }}/deb/
+        {% elif ansible_os_family == 'RedHat' %}
+        https://pkgs.k8s.io/core:/stable:/v{{ kubectl_version }}/rpm/
+        {% else %}
+        ""
+        {% endif %}
+      prefix: >-
+        {% if ansible_os_family == 'Debian' %}
+        deb
+        {% elif ansible_os_family == 'RedHat' %}
+        rpm
+        {% else %}
+        ""
+        {% endif %}
+
+
+- name: Fail if OS family not supported
+  ansible.builtin.fail:
+    msg: "Unsupported OS family {{ ansible_os_family }} para Kubernetes repo setup"
+  when: kubernetes_repo.url is not defined or kubernetes_repo.url == ""
 
 
 - name: Show default user for runner

@@ -118,8 +118,8 @@ Lo importante es tu criterio: que mejores lo que la IA te sugiera y no lo uses c
 
 #### Implementación
 
-Se ha creado un rol de Ansible que:
-
+Aparatado 2 -> Se ha creado un rol de Ansible que:
 - Instala paquetes genéricos del sistema.
 - Registra automáticamente un GitHub Actions self-hosted runner en el repositorio [`krage3x/devops-prueba-tecnica`](https://github.com/krage3x/devops-prueba-tecnica).
 - Se ha probado en una máquina virtual local para validar su correcto funcionamiento.
+- Para ejecutarlo lanzar -> ansible-playbook -i inventory/hosts playbook.yml -vvvv --vault-password-file .vault_pass 
