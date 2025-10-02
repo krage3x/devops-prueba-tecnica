@@ -1,0 +1,24 @@
+# Generic task to validate if a variable exists and if exists if it is not empty
+# Only for strings
+- name: Validate variable is defined and not empty
+  ansible.builtin.assert:
+    that:
+      - lookup('vars', item) is defined
+      - >
+        (
+          lookup('vars',item) is string and
+          (lookup('vars',item) | trim | length) > 0
+        )
+        or
+        (
+          lookup('vars',item) is iterable and
+          (lookup('vars',item) | length) > 0
+        )
+    fail_msg: "Variable '{{ item }}' is required and cannot be empty."
+  loop: "{{ vars_to_validate }}"
+
+
+- name: Set optional facts dynamically
+  ansible.builtin.set_fact:
+    "{{ item.var_name }}": "{{ item.var_value }}"
+  loop: "{{ variables_to_set }}"

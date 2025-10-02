@@ -1,0 +1,13 @@
+#SPDX-License-Identifier: MIT-0
+---
+# defaults file for bastion_provisioner
+# Allow the user to define extra packages
+ci_common_extra_packages: []
+github_runner_release_url: ""
+github_runner_user_name: ""
+github_runner_group_name: ""
+github_personal_access_token: ""
+github_repo_url: ""
+github_runner_name: ""
+github_runner_labels: []
+kubectl_version: ""

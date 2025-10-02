@@ -29,6 +29,7 @@ La prueba se divide en varias partes. Hay apartados **obligatorios** (lo mínimo
 
 ### 2. Automatización (obligatorio)
 - Escribe un **playbook de Ansible** que instale dependencias básicas en un servidor Linux (ej.: `docker`, `kubectl`, `helm`).  
+  - Escribe un **playbook de Ansible** que instale dependencias básicas en un servidor Linux (ej.: `docker`, `kubectl`, `helm`).  
   > Puedes probarlo en `localhost` o en una máquina virtual con Vagrant (¿o como pruebas tu los playbooks?;).  
 - Añade un script sencillo en **Bash o Python** que compruebe el estado de los contenedores de tu aplicación.  
 
@@ -114,3 +115,11 @@ Lo importante es tu criterio: que mejores lo que la IA te sugiera y no lo uses c
 - Y sobre todo… ¡disfrútalo! 🎉  
 
 ---
+
+#### Implementación
+
+Aparatado 2 -> Se ha creado un rol de Ansible que:
+- Instala paquetes genéricos del sistema.
+- Registra automáticamente un GitHub Actions self-hosted runner en el repositorio [`krage3x/devops-prueba-tecnica`](https://github.com/krage3x/devops-prueba-tecnica).
+- Se ha probado en una máquina virtual local para validar su correcto funcionamiento.
+- Para ejecutarlo lanzar -> ansible-playbook -i inventory/hosts playbook.yml -vvvv --vault-password-file .vault_pass 
