@@ -84,6 +84,13 @@ The following variables are used in this role. Some are configurable by the user
 - **Allowed values**:  
   Github repo url to link the worker with
 
+### Variable: `kubectl_version`
+- **Defined in**: `defaults/main.yml`
+- **Type**: `string`
+- **Required**: yes
+- **Allowed values**:  
+  Kubectl version release to download
+
 ### Variable: `github_runner_name`
 - **Defined in**: `defaults/main.yml`
 - **Type**: `string`
