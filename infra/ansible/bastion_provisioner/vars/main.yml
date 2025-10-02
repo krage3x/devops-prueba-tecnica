@@ -1,3 +1,23 @@
 #SPDX-License-Identifier: MIT-0
 ---
 # vars file for bastion_provisioner
+github_runner_user_default_name: "github-runner"
+github_runner_group_default_name: "github-runner"
+# acl package needed for ansible to elevate doing sudo to another user
+ci_common_packages:
+  - docker.io
+  - docker-compose
+  - git
+  - curl
+  - wget
+  - unzip
+  - zip
+  - ca-certificates
+  - apt-transport-https
+  - software-properties-common
+  - make
+  - build-essential
+  - python3
+  - jq
+  - acl
+  - lsb-release

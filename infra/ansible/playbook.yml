@@ -1,0 +1,12 @@
+- name: Test bastion_provisioner role
+  hosts: ci_bastion
+  gather_facts: false
+  roles:
+    - role: bastion_provisioner
+      vars:
+        github_runner_release_url: "https://github.com/actions/runner/releases/download/v2.328.0/actions-runner-linux-x64-2.328.0.tar.gz"
+        github_repo_url: "https://github.com/krage3x/devops-prueba-tecnica"
+        github_runner_name: "devops-runner"
+        github_runner_labels:
+          - dev-runner
+          - linux-amd64

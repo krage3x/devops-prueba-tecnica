@@ -1,0 +1,69 @@
+- name: Ensure github-actions-runner group exists
+  ansible.builtin.group:
+    name: "{{ github_runner_user }}"
+    state: present
+  become: true
+
+- name: Ensure github-actions-runner user exists
+  ansible.builtin.user:
+    name: "{{ github_runner_user }}"
+    group: "{{ github_runner_group }}"
+    home: "{{ github_runner_home_dir }}"
+    state: present
+  become: true
+
+- name: Download GitHub Actions software
+  ansible.builtin.get_url:
+    url: "{{ github_runner_release_url }}"
+    dest: "{{ github_runner_home_dir }}/{{ github_runner_filename }}"
+    mode: "0600"
+    owner: "{{ github_runner_user }}"
+    group: "{{ github_runner_group }}"
+  become: true
+
+- name: Create directory for github actions runner
+  ansible.builtin.file:
+    dest: "{{ github_runner_home_dir }}/actions-runner"
+    owner: "{{ github_runner_user }}"
+    group: "{{ github_runner_group }}"
+    state: directory
+  become: true
+
+- name: Extract GitHub Actions software
+  ansible.builtin.unarchive:
+    src: "{{ github_runner_home_dir }}/{{ github_runner_filename }}"
+    dest: "{{ github_runner_home_dir }}/actions-runner"
+    remote_src: true
+    owner: "{{ github_runner_user }}"
+    group: "{{ github_runner_group }}"
+    creates: "{{ github_runner_home_dir }}/actions-runner/bin/Run.Listener"
+  become: true
+
+- name: Check if GitHub Actions software is already configured
+  ansible.builtin.stat:
+    path: "{{ github_runner_home_dir }}/actions-runner/.credentials"
+  register: github_credentials_file
+  become: true
+
+- name: Configure GitHub Actions self-hosted runner
+  ansible.builtin.shell: |
+    ./config.sh \
+      --url '{{ github_repo_url }}' \
+      --token '{{ github_personal_access_token }}' \
+      --name '{{ github_runner_name }}' \
+      --labels '{{ github_runner_labels | join(" ") }}' \
+      --unattended \
+      --replace
+  args:
+    chdir: "{{ github_runner_home_dir }}/actions-runner/"
+  when: github_credentials_file.stat.exists == False
+  become: true
+  become_method: sudo
+  become_user: "{{ github_runner_user }}"
+
+- name: Setup github runner systemd unit
+  ansible.builtin.shell: |
+    ./svc.sh install '{{ github_runner_user }}' && ./svc.sh start
+  args:
+    chdir: "{{ github_runner_home_dir }}/actions-runner/"
+  become: true

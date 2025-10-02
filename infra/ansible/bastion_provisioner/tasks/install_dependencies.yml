@@ -1,0 +1,6 @@
+- name: Install all required and extra packages
+  ansible.builtin.apt:
+    name: "{{ ci_common_packages + ci_common_extra_packages }}"
+    state: present
+    update_cache: true
+  become: true
