@@ -62,7 +62,7 @@ Change to the project's docker directory and run:
    source .postres.env
    docker compose up -d
    ```
-This will start **three main containers**:
+This will start **four main containers**:
 
 1. **Postgres database (`postgres_db`)**  
    - Stores all your application data.  
