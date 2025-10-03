@@ -1,4 +1,13 @@
 services:
+  charging_station_app:
+    image: charging-station-app:latest
+    env_file:
+      - .app.env
+    ports:
+      - 8000:8000
+    depends_on: 
+      - db_init
+    command: ["--bind", "0.0.0.0:8000"]
   postgres_db:
     image: postgres:15
     restart: always
