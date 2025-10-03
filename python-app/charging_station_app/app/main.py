@@ -2,7 +2,14 @@ import toml
 from fastapi import FastAPI
 from app.api import stations,connectors,charging_points
 import os
+import logging
+import sys
 
+logging.basicConfig(
+    stream=sys.stdout,                  # envia logs a stdout
+    level=logging.INFO,                 # nivel mínimo a mostrar (INFO, DEBUG, etc.)
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 def get_version():
     base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

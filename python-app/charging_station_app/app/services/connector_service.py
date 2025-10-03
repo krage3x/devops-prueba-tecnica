@@ -1,14 +1,21 @@
+import json
+import logging
 from sqlalchemy.orm import Session
 from app.repositories.connector_repository import ConnectorRepository
 from app.repositories.connector_status_repository import ConnectorStatusRepository
-from app.schemas.connectors_schema import ConnectorCreate
+from app.schemas.connectors_schema import ConnectorCreate, ConnectorOut
+from app.schemas.connectors_status_schema import ConnectorStatusOut
 from app.models.connector_status import ConnectorStatus
+from app.redis import get_redis
 
+CACHE_KEY_CONNECTORS = "connectors:static"
+CACHE_TTL = 3600
 
 class ConnectorService:
     def __init__(self, db: Session):
         self.repo = ConnectorRepository(db)
         self.status_repo = ConnectorStatusRepository(db)
+        self.redis = get_redis()
 
 
     def create_connector(self, connector_data: ConnectorCreate):
@@ -30,7 +37,28 @@ class ConnectorService:
         return connector 
 
     def get_connector(self, connector_id: int):
-        return self.repo.get(connector_id)
+        cached = self.redis.get(CACHE_KEY_CONNECTORS)
+
+        if cached:
+            logging.info(f"Cache hit for connector {connector_id}")
+            cached_data = json.loads(cached)
+            return ConnectorOut(**cached_data)
+        else:
+            logging.info(f"Cache miss for connector {connector_id}")
+
+        connector_db = self.repo.get(connector_id)
+        if not connector_db:
+            return None  # o lanzar excepción según tu lógica
+
+        connector_out = ConnectorOut.from_orm(connector_db)
+
+        self.redis.set(
+            cache_key,
+            json.dumps(connector_out.model_dump()), 
+            ex=CACHE_TTL
+        )
+
+        return connector_out
 
 
     def delete_connector(self, connector_id: int):
@@ -40,8 +68,33 @@ class ConnectorService:
         return success
 
  
+    
     def list_connectors(self):
-        return self.repo.list_all()
+        cached = self.redis.get(CACHE_KEY_CONNECTORS)
+        connectors_out = []
+
+        if cached:
+            cached_list = json.loads(cached)
+            logging.info("Cache hit for connectors")
+            for c in cached_list:
+                connector_db = self.repo.get(c["id"])
+                connectors_out.append(ConnectorOut.from_orm(connector_db))
+            return connectors_out
+        else:
+            logging.info("Cache miss for connectors")
+        connectors = self.repo.list_all()
+        connectors_out = [ConnectorOut.from_orm(c) for c in connectors]
+
+        self.redis.set(
+            CACHE_KEY_CONNECTORS,
+            json.dumps([
+                {"id": c.id, "type": c.type, "charging_point_id": c.charging_point_id}
+                for c in connectors_out
+            ]),
+            ex=CACHE_TTL
+        )
+
+        return connectors_out
 
    
     def list_by_charging_point(self, charging_point_id: int):

@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
+from app.schemas.connectors_status_schema import ConnectorStatusOut  
 
 class ConnectorCreate(BaseModel):
     type: str
@@ -9,18 +10,19 @@ class ConnectorCreate(BaseModel):
 class ConnectorUpdateStatus(BaseModel):
     status_name: str
 
-class ConnectorStatusOut(BaseModel):
-    id: int
-    name: str
 
-    class Config:
-        orm_mode = True
+class ConnectorCreate(BaseModel):
+    type: str
+    charging_point_id: int
+    status_id: int
+
+class ConnectorUpdateStatus(BaseModel):
+    status_name: str
+
 
 class ConnectorOut(BaseModel):
     id: int
     type: str
     charging_point_id: int
-    status: ConnectorStatusOut
-
-    class Config:
-        orm_mode = True
+    status: ConnectorStatusOut 
+    model_config = {"from_attributes": True}

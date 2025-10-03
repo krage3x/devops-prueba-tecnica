@@ -5,6 +5,7 @@ from typing import List
 from app.schemas.charging_points_schema import ChargingPointOut, ChargingPointCreate
 from app.services.charging_point_service import ChargingPointService
 from app.database import get_db
+from app.redis import get_redis
 
 router = APIRouter(prefix="/charging-points", tags=["charging-points"])
 

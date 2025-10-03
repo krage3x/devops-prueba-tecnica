@@ -5,6 +5,7 @@ from typing import List
 from app.schemas.stations_schema import StationOut, StationCreate
 from app.services.station_service import StationService
 from app.database import get_db
+from app.redis import get_redis
 
 router = APIRouter(prefix="/stations", tags=["stations"])
 

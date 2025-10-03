@@ -42,5 +42,12 @@ class ConnectorRepository:
         self.db.commit()
         return True
 
+    def list_all_static_fields(self):
+        return self.db.query(
+            Connector.id,
+            Connector.type,
+            Connector.charging_point_id
+        ).all()
+
     def list_all(self) -> list[Connector]:
         return self.db.query(Connector).all()
