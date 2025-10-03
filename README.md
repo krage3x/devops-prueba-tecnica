@@ -116,10 +116,37 @@ Lo importante es tu criterio: que mejores lo que la IA te sugiera y no lo uses c
 
 ---
 
-#### Implementación
+## Implementación
+### 1. Contenedores y Kubernetes (obligatorio)
 
-Aparatado 2 -> Se ha creado un rol de Ansible que:
-- Instala paquetes genéricos del sistema.
-- Registra automáticamente un GitHub Actions self-hosted runner en el repositorio [`krage3x/devops-prueba-tecnica`](https://github.com/krage3x/devops-prueba-tecnica).
-- Se ha probado en una máquina virtual local para validar su correcto funcionamiento.
-- Para ejecutarlo lanzar -> ansible-playbook -i inventory/hosts playbook.yml -vvvv --vault-password-file .vault_pass 
+**Aplicación:**  
+- Se ha desarrollado una aplicación sencilla en FastAPI para gestionar un sistema de estaciones de carga de vehículos eléctricos.  
+- La aplicación incluye:  
+  - **Estaciones de carga**  
+  - **Puntos de carga** dentro de cada estación  
+  - **Conectores** dentro de cada punto de carga, con su estado (disponible, ocupada, etc.)  
+- **Nota:** Solo se cachean los conectores en Redis; el estado no se cachea debido a que varía con frecuencia.  
+
+**Docker:**  
+- Se ha creado un **Dockerfile** para la aplicación.  
+- Se ha preparado un **docker-compose.yml** que levanta:  
+  - La aplicación  
+  - Una base de datos PostgreSQL  
+  - Redis como caché  
+
+**Pendientes:**  
+- Exponer métricas Prometheus y proteger el endpoint.  
+- Preparar los manifiestos de Kubernetes (Deployment, Service, ConfigMap/Secret) para el despliegue.
+
+### 2. Automatización (obligatorio)
+
+**Ansible:**  
+- Se ha creado un **rol de Ansible** que:  
+  - Instala paquetes genéricos del sistema (docker, kubectl, helm, etc.).  
+  - Registra automáticamente un **GitHub Actions self-hosted runner** en el repositorio [`krage3x/devops-prueba-tecnica`](https://github.com/krage3x/devops-prueba-tecnica).  
+- **Validación:**  
+  - Se ha probado en una máquina virtual local para asegurar su correcto funcionamiento.  
+- **Ejecución:**  
+```bash
+ansible-playbook -i inventory/hosts playbook.yml -vvvv --vault-password-file .vault_pass
+```
