@@ -1,0 +1,96 @@
+#!/bin/bash
+set -e
+
+echo "Waiting for Postgres to be ready..."
+until pg_isready -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" >/dev/null 2>&1; do
+  sleep 2
+done
+
+echo "Postgres is ready. Running init SQL..."
+
+PGPASSWORD="$POSTGRES_PASSWORD" psql -v ON_ERROR_STOP=1 \
+  -h "$POSTGRES_HOST" -U "$POSTGRES_USER" -d "$POSTGRES_DB" <<-EOSQL
+
+-- ️Create SCHEMA
+CREATE SCHEMA IF NOT EXISTS ${APP_SCHEMA};
+
+-- ️Create app's user if not exists
+DO \$\$
+BEGIN
+  IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '${APP_DB_USER}') THEN
+    CREATE USER ${APP_DB_USER} WITH PASSWORD '${APP_DB_PASSWORD}';
+  END IF;
+END
+\$\$;
+
+-- Create sequences
+DO \$\$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+                 WHERE c.relkind = 'S' AND c.relname = 'stations_id_seq' AND n.nspname = '${APP_SCHEMA}') THEN
+    EXECUTE 'CREATE SEQUENCE ${APP_SCHEMA}.stations_id_seq START WITH 1 INCREMENT BY 1';
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+                 WHERE c.relkind = 'S' AND c.relname = 'charging_points_id_seq' AND n.nspname = '${APP_SCHEMA}') THEN
+    EXECUTE 'CREATE SEQUENCE ${APP_SCHEMA}.charging_points_id_seq START WITH 1 INCREMENT BY 1';
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+                 WHERE c.relkind = 'S' AND c.relname = 'connectors_id_seq' AND n.nspname = '${APP_SCHEMA}') THEN
+    EXECUTE 'CREATE SEQUENCE ${APP_SCHEMA}.connectors_id_seq START WITH 1 INCREMENT BY 1';
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+                 WHERE c.relkind = 'S' AND c.relname = 'connector_status_id_seq' AND n.nspname = '${APP_SCHEMA}') THEN
+    EXECUTE 'CREATE SEQUENCE ${APP_SCHEMA}.connector_status_id_seq START WITH 1 INCREMENT BY 1';
+  END IF;
+END
+\$\$;
+
+CREATE TABLE IF NOT EXISTS ${APP_SCHEMA}.stations (
+    id INT PRIMARY KEY DEFAULT nextval('${APP_SCHEMA}.stations_id_seq'),
+    name VARCHAR NOT NULL,
+    location VARCHAR NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS ${APP_SCHEMA}.charging_points (
+    id INT PRIMARY KEY DEFAULT nextval('${APP_SCHEMA}.charging_points_id_seq'),
+    code VARCHAR NOT NULL UNIQUE,
+    max_power_kw INT NOT NULL,
+    station_id INT NOT NULL REFERENCES ${APP_SCHEMA}.stations(id)
+);
+
+CREATE TABLE IF NOT EXISTS ${APP_SCHEMA}.connector_status (
+    id INT PRIMARY KEY DEFAULT nextval('${APP_SCHEMA}.connector_status_id_seq'),
+    name VARCHAR NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS ${APP_SCHEMA}.connectors (
+    id INT PRIMARY KEY DEFAULT nextval('${APP_SCHEMA}.connectors_id_seq'),
+    type VARCHAR NOT NULL,
+    charging_point_id INT NOT NULL REFERENCES ${APP_SCHEMA}.charging_points(id),
+    status_id INT NOT NULL REFERENCES ${APP_SCHEMA}.connector_status(id)
+);
+
+-- Grant permissions
+GRANT CONNECT ON DATABASE ${POSTGRES_DB} TO ${APP_DB_USER};
+GRANT USAGE ON SCHEMA ${APP_SCHEMA} TO ${APP_DB_USER};
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA ${APP_SCHEMA} TO ${APP_DB_USER};
+GRANT USAGE, SELECT, UPDATE ON ALL SEQUENCES IN SCHEMA ${APP_SCHEMA} TO ${APP_DB_USER};
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA ${APP_SCHEMA}
+  GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO ${APP_DB_USER};
+ALTER DEFAULT PRIVILEGES IN SCHEMA ${APP_SCHEMA}
+  GRANT USAGE, SELECT, UPDATE ON SEQUENCES TO ${APP_DB_USER};
+
+INSERT INTO ${APP_SCHEMA}.connector_status (name)
+VALUES 
+    ('Disponible'),
+    ('Ocupado')
+ON CONFLICT (name) DO NOTHING;
+
+EOSQL
+
+echo "Database, sequences, tables, and user permissions initialized for ${APP_DB_USER}"
