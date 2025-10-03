@@ -77,6 +77,16 @@ This will start **three main containers**:
    - **Depends on** `db_init` to ensure the database is initialized before the app starts.  
    - Exposes port `8000` to the host: [http://0.0.0.0:8000]
 
+4. **Redis cache (`redis`)**  
+   - Used as a cache or for other application state management.  
+   - Configured with a **password** for security (set via environment variable).  
+   - Exposes port `6379` to the host.  
+   - Can start independently but should be ready before the app connects.
+
  ️ **Dependencies:**  
  - `db_init` depends on `postgres_db`.  
- - `charging_station_app` depends on `db_init`.
+ - `charging_station_app` depends on `db_init` and `redis`.
+ ## Notes
+ - Only the connectors are cached in Redis. The connector status is not cached because it changes frequently and should always reflect the current state.
+ - Make sure the `.env` files in the `docker/` directory are properly configured before starting the containers.
+ - When running locally, use Poetry to ensure all dependencies are loaded correctly.
