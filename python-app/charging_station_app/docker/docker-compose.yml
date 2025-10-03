@@ -1,6 +1,6 @@
 services:
   charging_station_app:
-    image: charging-station-app:latest
+    image: charging-station-app:0.1.0
     env_file:
       - .app.env
     ports:
@@ -9,6 +9,7 @@ services:
       - db_init
       - redis
     command: ["--bind", "0.0.0.0:8000"]
+    user: "1001:1001"
   postgres_db:
     image: postgres:15
     restart: always
@@ -21,9 +22,15 @@ services:
   redis:
     image: redis:7
     container_name: redis
+    env_file:
+      - .redis.env
     ports:
       - "6379:6379"
+    volumes:
+      - ./entrypoint/redis-entrypoint.sh:/usr/local/bin/redis-entrypoint.sh
+    entrypoint: ["/usr/local/bin/redis-entrypoint.sh"]
     restart: always
+    user: "redis:redis"
   db_init:
     image: postgres:15
     depends_on:
@@ -32,6 +39,6 @@ services:
       - ./.db-init.env
     entrypoint: [ "bash", "/init-db.sh" ]
     volumes:
-      - ./init-db.sh:/init-db.sh
+      - ./entrypoint/init-db.sh:/init-db.sh
 volumes:
   pgdata:

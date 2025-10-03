@@ -11,7 +11,7 @@ ENV PYTHONUNBUFFERED=1 \
 
 RUN pip install poetry==$POETRY_VERSION
 
-
+USER 1001:1001
 WORKDIR $APP_HOME
 
 COPY pyproject.toml poetry.lock* ./
