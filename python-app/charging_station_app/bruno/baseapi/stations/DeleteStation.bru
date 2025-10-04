@@ -1,0 +1,15 @@
+meta {
+  name: DeleteStation
+  type: http
+  seq: 1
+}
+
+delete {
+  url: {{base_url}}/stations/:id
+  body: none
+  auth: none
+}
+
+params:path {
+  id: 2
+}

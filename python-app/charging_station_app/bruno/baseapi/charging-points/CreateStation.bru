@@ -1,0 +1,19 @@
+meta {
+  name: CreateChargingPoint
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/charging-points
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+  "code": "1",
+  "max_power_kw": "10",
+  "station_id": "1"
+  }
+}

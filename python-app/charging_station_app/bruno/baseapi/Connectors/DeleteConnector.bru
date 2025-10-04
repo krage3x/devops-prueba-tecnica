@@ -1,0 +1,15 @@
+meta {
+  name: DeleteConnector
+  type: http
+  seq: 1
+}
+
+delete {
+  url: {{base_url}}/connectors/:id
+  body: none
+  auth: none
+}
+
+params:path {
+  id: 3
+}
