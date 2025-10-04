@@ -47,7 +47,45 @@ func NewPrometheusPanel(title, expr string, datasource *dashboard.DataSourceRef,
 		},
 	}
 }
-func NewPrometheusHistogramPanel(title string, metric string, datasource *dashboard.DataSourceRef, x, y, w, h int) PrometheusPanel {
+
+func NewPrometheusTopErrorsBarChart(
+	title string,
+	datasource *dashboard.DataSourceRef,
+	x, y, w, h int,
+) PrometheusPanel {
+	return PrometheusPanel{
+		Type:       "barchart",
+		Title:      title,
+		Datasource: datasource,
+		GridPos:    map[string]int{"x": x, "y": y, "w": w, "h": h},
+		Targets: []PrometheusTarget{
+			{
+				Expr:   `topk(10, sum(rate(http_requests_total{app=~"$app", environment=~"$environment", http_status=~"4..|5.."}[5m])) by (endpoint, http_status))`,
+				RefID:  "A",
+				Legend: "{{endpoint}} - {{http_status}}",
+			},
+		},
+		Options: map[string]any{
+			"orientation": "vertical",
+			"stacking":    "none",
+			"showValue":   true,
+			"tooltip":     map[string]any{"mode": "single"},
+			"legend": map[string]any{
+				"displayMode": "list",
+				"placement":   "bottom",
+				"showLegend":  true,
+			},
+			"yaxis": map[string]any{"format": "short", "min": 0},
+			"xaxis": map[string]any{"show": true},
+		},
+	}
+}
+
+func NewLatencyPercentilesPanel(
+	title, metric string,
+	datasource *dashboard.DataSourceRef,
+	x, y, w, h int,
+) PrometheusPanel {
 	return PrometheusPanel{
 		Type:       "timeseries",
 		Title:      title,
@@ -55,49 +93,33 @@ func NewPrometheusHistogramPanel(title string, metric string, datasource *dashbo
 		GridPos:    map[string]int{"x": x, "y": y, "w": w, "h": h},
 		Targets: []PrometheusTarget{
 			{
-				Expr:   fmt.Sprintf(`rate(%s_bucket{app=~"$app", environment=~"$environment"}[5m])`, metric),
+				Expr: fmt.Sprintf(`
+histogram_quantile(0.5, sum(rate(%s_bucket{app=~"$app", environment=~"$environment"}[5m])) by (le, endpoint, method))
+`, metric),
 				RefID:  "A",
-				Legend: "{{le}} {{method}} {{endpoint}}",
+				Legend: "{{endpoint}} - {{method}} - p50",
 			},
-		},
-		Options: map[string]any{
-			"tooltip": map[string]any{
-				"mode": "single",
-			},
-			"legend": map[string]any{
-				"displayMode": "list",
-				"placement":   "bottom",
-				"showLegend":  true,
-			},
-		},
-	}
-}
-func NewPrometheusBarGaugePanel(title, expr string, datasource *dashboard.DataSourceRef, x, y, w, h int) PrometheusPanel {
-	return PrometheusPanel{
-		Type:       "bargauge",
-		Title:      title,
-		Datasource: datasource,
-		GridPos:    map[string]int{"x": x, "y": y, "w": w, "h": h},
-		Targets: []PrometheusTarget{
 			{
-				Expr:   expr,
-				RefID:  "A",
-				Legend: "{{endpoint}} {{method}} {{http_status}}", // aquí ponemos leyenda legible
+				Expr: fmt.Sprintf(`
+histogram_quantile(0.9, sum(rate(%s_bucket{app=~"$app", environment=~"$environment"}[5m])) by (le, endpoint, method))
+`, metric),
+				RefID:  "B",
+				Legend: "{{endpoint}} - {{method}} - p90",
+			},
+			{
+				Expr: fmt.Sprintf(`
+histogram_quantile(0.99, sum(rate(%s_bucket{app=~"$app", environment=~"$environment"}[5m])) by (le, endpoint, method))
+`, metric),
+				RefID:  "C",
+				Legend: "{{endpoint}} - {{method}} - p99",
 			},
 		},
 		Options: map[string]any{
-			"displayMode":  "lcd",
-			"orientation":  "horizontal",
-			"showUnfilled": true,
-			"min":          0,
-			"max":          100,
-			"thresholds": map[string]any{
-				"mode": "absolute",
-				"steps": []any{
-					map[string]any{"color": "green", "value": 0},
-					map[string]any{"color": "yellow", "value": 50},
-					map[string]any{"color": "red", "value": 80},
-				},
+			"tooltip": map[string]any{"mode": "single"},
+			"legend": map[string]any{
+				"displayMode": "table",
+				"placement":   "right",
+				"showLegend":  true,
 			},
 		},
 	}
