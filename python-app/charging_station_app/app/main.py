@@ -26,23 +26,26 @@ def get_version():
 
 app = FastAPI(title="Charging Station API", version=get_version())
 
-# Incluir el router de estaciones
+app.include_router(metrics.router,  tags=["metrics"])
 app.include_router(stations.router,  tags=["stations"])
 app.include_router(connectors.router,  tags=["connectors"])
 app.include_router(charging_points.router,  tags=["charging_points"])
-app.include_router(metrics.router,  tags=["metrics"])
 
 @app.middleware("http")
 async def prometheus_middleware(request: Request, call_next):
     start_time = time.time()
     response = await call_next(request)
     elapsed = time.time() - start_time
-    REQUEST_LATENCY.labels(method=request.method, endpoint=request.url.path).observe(elapsed)
-    # Increase counter for every petition for each endpoint
-    REQUEST_COUNT.labels(
-        method=request.method,
-        endpoint=request.url.path
-    ).inc()
+
+    if not request.url.path.startswith("/metrics"):
+        if "route" in request.scope and getattr(request.scope["route"], "path", None):
+            endpoint = request.scope["route"].path.rstrip("/") or "/"
+        else:
+            endpoint = request.url.path.rstrip("/") or "/"
+
+        REQUEST_LATENCY.labels(method=request.method, endpoint=endpoint).observe(elapsed)
+        REQUEST_COUNT.labels(method=request.method, endpoint=endpoint).inc()
+
     return response
 
 
