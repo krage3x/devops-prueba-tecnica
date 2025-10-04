@@ -13,6 +13,17 @@ def list_connectors(db: Session = Depends(get_db)):
     service = ConnectorService(db)
     return service.list_connectors()
 
+@router.get("/{connector_id}", response_model=ConnectorOut)
+def get_connector(connector_id: int, db: Session = Depends(get_db)):
+    service = ConnectorService(db)
+    connector = service.get_connector(connector_id)
+    if not connector:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Connector with id {connector_id} not found"
+        )
+    return connector
+
 
 @router.post("/", response_model=ConnectorOut, status_code=status.HTTP_201_CREATED)
 def create_connector(connector_data: ConnectorCreate, db: Session = Depends(get_db)):
