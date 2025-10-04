@@ -34,3 +34,31 @@ share/python-wheels/
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
+
+# Go gitignore
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Build output
+/bin/
+/build/
+
+# Dependency directories (if vendoring)
+vendor/
+
+# Go modules
+go.sum
+
+# Test coverage files
+coverage.out
+
+# Editor/IDE files
+*.swp
+*.tmp
+*.bak
