@@ -7,6 +7,7 @@ from app.schemas.connectors_schema import ConnectorCreate, ConnectorOut
 from app.schemas.connectors_status_schema import ConnectorStatusOut
 from app.models.connector_status import ConnectorStatus
 from app.redis import get_redis
+from app.api.metrics import CONNECTORS_CREATED, CONNECTORS_DELETED, CONNECTORS_UPDATED
 
 CACHE_KEY_CONNECTORS_LIST = "connectors:static"
 CACHE_KEY_CONNECTOR = "connector:{id}"
@@ -41,6 +42,7 @@ class ConnectorService:
             json.dumps(connectors_list),
             ex=CACHE_TTL
         )
+        CONNECTORS_CREATED.inc() 
 
         return connector
  
@@ -56,6 +58,7 @@ class ConnectorService:
         connector.status = status
 
         self.repo.update(connector)
+        CONNECTORS_UPDATED.inc()
 
         return connector 
 
@@ -101,6 +104,9 @@ class ConnectorService:
                 json.dumps(updated_list),
                 ex=CACHE_TTL
             )
+
+        CONNECTORS_DELETED.inc()
+
         return success
 
  

@@ -6,6 +6,7 @@ from app.schemas.connectors_schema import ConnectorOut, ConnectorCreate, Connect
 from app.services.connector_service import ConnectorService
 from app.database import get_db
 
+
 router = APIRouter(prefix="/connectors", tags=["connectors"])
 
 @router.get("/", response_model=List[ConnectorOut])
