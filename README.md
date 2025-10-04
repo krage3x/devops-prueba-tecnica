@@ -120,23 +120,30 @@ Lo importante es tu criterio: que mejores lo que la IA te sugiera y no lo uses c
 ### 1. Contenedores y Kubernetes (obligatorio)
 
 **Aplicación:**  
-- Se ha desarrollado una aplicación sencilla en FastAPI para gestionar un sistema de estaciones de carga de vehículos eléctricos.  
+- Se ha desarrollado una aplicación sencilla en **FastAPI** para gestionar un sistema de estaciones de carga de vehículos eléctricos.  
 - La aplicación incluye:  
   - **Estaciones de carga**  
   - **Puntos de carga** dentro de cada estación  
   - **Conectores** dentro de cada punto de carga, con su estado (disponible, ocupada, etc.)  
-- **Nota:** Solo se cachean los conectores en Redis; el estado no se cachea debido a que varía con frecuencia.  
 
-**Docker:**  
+**Docker y métricas:**  
 - Se ha creado un **Dockerfile** para la aplicación.  
 - Se ha preparado un **docker-compose.yml** que levanta:  
   - La aplicación  
-  - Una base de datos PostgreSQL  
-  - Redis como caché  
+  - Una base de datos **PostgreSQL**  
+  - **Redis** como caché  
+  - **Prometheus** para pulling de metricas
+  - **Grafana** Para visualizar dashboards
+  - **Alertmanager** Para recibir alertas
+- Se ha añadido la librería **Prometheus** para exponer métricas del servicio.  
+- Se han creado **dashboards en Grafana** mostrando:  
+  - Número total de requests por endpoint  
+  - Latencias p90 por endpoint  
+  - Histograma de latencias  
+  - Errores 4xx y 5xx  
 
 **Pendientes:**  
-- Exponer métricas Prometheus y proteger el endpoint.  
-- Preparar los manifiestos de Kubernetes (Deployment, Service, ConfigMap/Secret) para el despliegue.
+- Preparar los **manifiestos de Kubernetes** (`Deployment`, `Service`, `ConfigMap/Secret`) para desplegar la aplicación en un cluster (por ejemplo, usando `kind`, `k3d` o `minikube`).  
 
 ### 2. Automatización (obligatorio)
 
@@ -150,3 +157,46 @@ Lo importante es tu criterio: que mejores lo que la IA te sugiera y no lo uses c
 ```bash
 ansible-playbook -i inventory/hosts playbook.yml -vvvv --vault-password-file .vault_pass
 ```
+### 3. CI/CD
+
+**Integración Continua (CI):**  
+- Se configuró un **workflow en GitHub Actions** que construye la imagen Docker de la aplicación FastAPI.  
+- El workflow utiliza el **runner configurado previamente** en el repositorio.  
+- La imagen resultante se publica automáticamente en un **registro privado** (Docker Hub o GitHub Container Registry).  
+- La idea era que el workflow se disparara al recibir un push a `main` con una etiqueta o versión específica, pero **no se probó por falta de tiempo**.  
+
+**Entrega Continua (CD):**  
+- La integración con **ArgoCD** para despliegue automático en Kubernetes **no se implementó por tiempo**, pero el proyecto está preparado para añadirlo posteriormente.  
+
+**Notas:**  
+- Con este flujo, la imagen Docker se construye y actualiza automáticamente según el workflow definido.  
+- Los manifiestos de Kubernetes pueden integrarse fácilmente con ArgoCD en el futuro para automatizar el despliegue.
+
+
+### 4. Monitorización y Alertas
+
+**Métricas personalizadas:**  
+- Se añadieron métricas Prometheus en la aplicación FastAPI para exponer:  
+  - Número de requests totales por endpoint.  
+  - Latencias p90 por endpoint.  
+  - Histograma de latencias.  
+  - Errores 4xx y 5xx por endpoint y método.  
+
+**Dashboards en Grafana:**  
+- Se crearon paneles para visualizar:  
+  - Total de requests por endpoint (bar chart).  
+  - Latencias p90 y rangos de latencia (histogram/percentiles).  
+  - Errores 4xx/5xx por endpoint y método.  
+- Permiten identificar rápidamente endpoints críticos y su comportamiento.  
+
+**Alertas con Prometheus + Alertmanager:**  
+- Configuración de reglas genéricas de alerta:  
+  - `HighLatencyP90`: dispara si la latencia p90 supera un umbral definido (por ejemplo, >3s).  
+  - `High4xxErrorRate`: dispara si el ratio de errores 4xx supera un umbral (por ejemplo, 10%).  
+- Las alertas se agrupan por `app`, `alertname` en Alertmanager, y se pueden enrutar a distintos receivers si se desea.  
+- Alertmanager permite definir receivers genéricos o específicos para notificaciones (email, webhook, etc.).  
+
+**Protección del endpoint `/metrics`:**  
+- No se implementó autenticación o TLS por tiempo.  
+- Si la comunicación es **interna en una red privada**, no es necesario proteger el endpoint `/metrics`.  
+- Si se quiere exponer externamente, se recomienda usar un **proxy** que bloquee directamente el acceso a `/metrics` desde fuera de la red privada, evitando que se pueda consultar públicamente.
