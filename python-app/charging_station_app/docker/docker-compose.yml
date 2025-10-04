@@ -40,6 +40,8 @@ services:
     entrypoint: [ "bash", "/init-db.sh" ]
     volumes:
       - ./entrypoint/init-db.sh:/init-db.sh
+
+  # Monitoring stack prometheus + grafana
   prometheus:
     image: prom/prometheus:v2.49.0
     container_name: prometheus
@@ -48,5 +50,23 @@ services:
     volumes:
       - ./conf/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     restart: always
+
+  grafana:
+    image: grafana/grafana:10.0.0
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    env_file:
+      - .grafana.env
+    depends_on:
+      - prometheus
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./conf/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./conf/grafana/dashboards/dashboard.json:/var/lib/grafana/dashboards/dashboard.json
+      - ./conf/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+    restart: always
+
 volumes:
   pgdata:
+  grafana-data:
