@@ -50,12 +50,10 @@ func main() {
 		log.Fatalf("failed to build dashboard: %v", err)
 	}
 
-	// Convert dashboard a map para poder inyectar paneles Prometheus
 	dbJSON, _ := json.Marshal(dashboardObj)
 	var dashboardMap map[string]interface{}
 	json.Unmarshal(dbJSON, &dashboardMap)
 
-	// Paneles existentes
 	httpRequestsPanel := NewPrometheusPanel(
 		"HTTP Requests",
 		`sum(rate(http_requests_total{app=~"$app", environment=~"$environment"}[$__range])) by (endpoint, method)`,
@@ -114,7 +112,6 @@ func main() {
 		dashboardMap["panels"] = append(existing, panels...)
 	}
 
-	// Guardar dashboard JSON
 	finalJSON, _ := json.MarshalIndent(dashboardMap, "", "  ")
 	os.WriteFile("dashboard.json", finalJSON, 0644)
 	log.Println("Dashboard JSON actualizado con paneles de errores y latencias listo para importar")
