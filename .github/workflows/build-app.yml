@@ -38,5 +38,5 @@ jobs:
           file: ./python-app/charging_station_app/docker/Dockerfile 
           push: true
           tags: |
-            ${{ vars.DOCKER_REPO }}:${{ github.event.inputs.version }}
-            ${{ vars.DOCKER_REPO }}:${{ github.sha }}
+            ${{ vars.DOCKERHUB_REPO }}:${{ github.event.inputs.version }}
+            ${{ vars.DOCKERHUB_REPO }}:${{ github.sha }}
