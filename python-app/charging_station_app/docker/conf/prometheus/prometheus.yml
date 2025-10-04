@@ -1,0 +1,12 @@
+global:
+  scrape_interval: 15s 
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'charging_station_app'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['charging_station_app:8000']
+        labels:
+          app: charging_station_app
+          environment: development
