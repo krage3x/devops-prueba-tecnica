@@ -1,0 +1,148 @@
+{
+  "annotations": {},
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "HTTP Requests",
+      "datasource": {
+        "type": "Prometheus",
+        "uid": "Prometheus"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total{app=~\"$app\", environment=~\"$environment\"}[$__range])) by (endpoint, method)",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      }
+    },
+    {
+      "type": "bargauge",
+      "title": "Total Requests",
+      "datasource": {
+        "type": "Prometheus",
+        "uid": "Prometheus"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 10
+      },
+      "targets": [
+        {
+          "expr": "sum(http_requests_total{app=~\"$app\", environment=~\"$environment\"}) by (endpoint, method, http_status)",
+          "refId": "A",
+          "legendFormat": "{{endpoint}} {{method}} {{http_status}}"
+        }
+      ],
+      "options": {
+        "displayMode": "lcd",
+        "max": 100,
+        "min": 0,
+        "orientation": "horizontal",
+        "showUnfilled": true,
+        "thresholds": {
+          "mode": "absolute",
+          "steps": [
+            {
+              "color": "green",
+              "value": 0
+            },
+            {
+              "color": "yellow",
+              "value": 50
+            },
+            {
+              "color": "red",
+              "value": 80
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Request Latency Histogram",
+      "datasource": {
+        "type": "Prometheus",
+        "uid": "Prometheus"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 15
+      },
+      "targets": [
+        {
+          "expr": "rate(http_request_duration_seconds_bucket{app=~\"$app\", environment=~\"$environment\"}[5m])",
+          "refId": "A",
+          "legendFormat": "{{le}} {{method}} {{endpoint}}"
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      }
+    }
+  ],
+  "schemaVersion": 41,
+  "templating": {
+    "list": [
+      {
+        "allValue": ".*",
+        "datasource": {
+          "type": "Prometheus",
+          "uid": "Prometheus"
+        },
+        "includeAll": true,
+        "label": "App",
+        "multi": true,
+        "name": "app",
+        "query": "label_values(up, app)",
+        "refresh": 2,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "datasource": {
+          "type": "Prometheus",
+          "uid": "Prometheus"
+        },
+        "includeAll": true,
+        "label": "Environment",
+        "multi": true,
+        "name": "environment",
+        "query": "label_values(up, environment)",
+        "refresh": 2,
+        "sort": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "timezone": "browser",
+  "title": "FastAPI Dashboards"
+}

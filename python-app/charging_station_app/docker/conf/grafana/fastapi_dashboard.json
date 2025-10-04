@@ -1,0 +1,125 @@
+{
+  "__inputs": [],
+  "__elements": {},
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "12.0.0"
+    },
+    {
+      "type": "datasource",
+      "id": "prometheus",
+      "name": "Prometheus",
+      "version": "1.0.0"
+    },
+    {
+      "type": "panel",
+      "id": "stat",
+      "name": "Stat",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "timeseries",
+      "name": "Time series",
+      "version": ""
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "grafana",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "target": {
+          "limit": 100,
+          "matchAny": false,
+          "tags": [],
+          "type": "dashboard"
+        },
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "id": 1,
+      "type": "graph",
+      "title": "Total requests per endpoint",
+      "gridPos": { "x": 0, "y": 9, "w": 24, "h": 9 },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "sum(increase(http_requests_total{app=\"$app\", environment=\"$env\"}[$__range])) by (endpoint, method)",
+          "legendFormat": "{{endpoint}} - {{method}}",
+          "refId": "A"
+        }
+      ],
+      "lines": true,
+      "fill": 1,
+      "xaxis": { "mode": "time" },
+      "yaxes": [
+        { "format": "short", "label": "Requests/s", "logBase": 1, "min": 0 },
+        { "format": "short", "logBase": 1, "min": 0 }
+      ]
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 41,
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "current": {},
+        "datasource": "Prometheus",
+        "definition": "label_values(up, app)",
+        "includeAll": false,
+        "label": "Application",
+        "name": "app",
+        "options": [],
+        "query": {
+          "query": "label_values(up, app)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "type": "query"
+      },
+      {
+        "name": "env",
+        "type": "query",
+        "label": "Environment",
+        "datasource": "Prometheus",
+        "query": {
+          "query": "label_values(up{app=\"$app\"}, environment)",
+          "refId": "StandardVariableQuery"
+        },
+        "definition": "label_values(up{app=\"$app\"}, environment)",
+        "includeAll": true,
+        "multi": true,
+        "refresh": 1
+      }
+    ]
+  },
+  "time": {
+    "from": "now-5m",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "API observability",
+  "uid": "fastapi-observability",
+  "version": 2,
+  "weekStart": "",
+  "gnetId": 16110
+}
