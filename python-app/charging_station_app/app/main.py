@@ -44,7 +44,11 @@ async def prometheus_middleware(request: Request, call_next):
             endpoint = request.url.path.rstrip("/") or "/"
 
         REQUEST_LATENCY.labels(method=request.method, endpoint=endpoint).observe(elapsed)
-        REQUEST_COUNT.labels(method=request.method, endpoint=endpoint).inc()
+        REQUEST_COUNT.labels(
+            method=request.method,
+            endpoint=endpoint,
+            http_status=str(response.status_code)
+        ).inc()
 
     return response
 

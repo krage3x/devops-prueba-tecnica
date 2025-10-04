@@ -19,8 +19,9 @@ CONNECTORS_UPDATED = Counter(
 REQUEST_COUNT = Counter(
     "http_requests_total",
     "Total HTTP requests",
-    ["method", "endpoint"]
+    ["method", "endpoint","http_status"]
 )
+
 
 # Histogram for latency
 REQUEST_LATENCY = Histogram(
