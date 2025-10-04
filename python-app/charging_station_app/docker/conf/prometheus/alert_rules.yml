@@ -1,0 +1,31 @@
+groups:
+  - name: http_alerts
+    rules:
+      - alert: HighLatencyP90
+        expr: |
+          histogram_quantile(0.9,
+            sum(rate(http_request_duration_seconds_bucket[5m]))
+            by (le, app, endpoint, method)
+          ) > 3
+        for: 5m
+        labels:
+          severity: warning
+          group: http_alerts
+        annotations:
+          summary: "High P90 latency"
+          description: "Generic p90 latency alert exceeding 3 seconds"
+
+      - alert: High4xxErrorRate
+        expr: |
+          sum(rate(http_requests_total{http_status=~"4.."}[5m]))
+          by (app, endpoint, method)
+          /
+          sum(rate(http_requests_total[5m]))
+          by (app, endpoint, method) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          group: http_alerts
+        annotations:
+          summary: "High 4xx error rate"
+          description: "Generic 4xx error rate alert exceeding 10%"

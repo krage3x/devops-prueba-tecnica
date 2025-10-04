@@ -41,7 +41,7 @@ services:
     volumes:
       - ./entrypoint/init-db.sh:/init-db.sh
 
-  # Monitoring stack prometheus + grafana
+  # Monitoring stack prometheus + grafana + alertmanager
   prometheus:
     image: prom/prometheus:v2.49.0
     container_name: prometheus
@@ -49,7 +49,16 @@ services:
       - "9090:9090"
     volumes:
       - ./conf/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./conf/prometheus/alert_rules.yml:/etc/prometheus/alert_rules.yml
     restart: always
+
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    restart: unless-stopped
+    volumes:
+      - ./conf/alertmanager:/etc/alertmanager
+    ports:
+      - 9093:9093
 
   grafana:
     image: grafana/grafana:10.0.0

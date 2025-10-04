@@ -10,3 +10,12 @@ scrape_configs:
         labels:
           app: charging_station_app
           environment: development
+
+rule_files:
+  - "/etc/prometheus/alert_rules.yml"  
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - "alertmanager:9093" 
