@@ -18,7 +18,7 @@ env:
 
 jobs:
   build-and-push:
-    runs-on: [self-hosted, dev-runner]
+    runs-on: [self-hosted, Linux, X64]
 
     steps:
       - name: Checkout repository
