@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "charging_station_app.fullname" . }}
+  labels:
+    app: {{ include "charging_station_app.name" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "charging_station_app.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "charging_station_app.name" . }}
+    spec:
+      securityContext:
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+      initContainers:
+        - name: db-init
+          image: postgres:15-alpine
+          command: ["bash", "/init-db.sh"]
+          envFrom:
+            - secretRef:
+                name: {{ include "charging_station_app.fullname" . }}-init-secret
+            - configMapRef:
+                name: {{ include "charging_station_app.fullname" . }}-postgres-init-config
+          volumeMounts:
+            - name: init-db-script
+              mountPath: /init-db.sh
+              subPath: init.sh
+      containers:
+        - name: {{ include "charging_station_app.name" . }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args: ["--bind", "0.0.0.0:8000"]
+          envFrom:
+            - configMapRef:
+                name: {{ include "charging_station_app.fullname" . }}-config
+            - secretRef:
+                name: {{ include "charging_station_app.fullname" . }}-secret
+          ports:
+            - containerPort: 8000
+      volumes:
+        - name: init-db-script
+          configMap:
+            name: {{ include "charging_station_app.fullname" . }}-init-db-script
+      restartPolicy: Always

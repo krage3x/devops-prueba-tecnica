@@ -1,0 +1,47 @@
+replicaCount: 1
+
+image:
+  repository: krg3x/devops-prueba-tecnica
+  tag: 0.1.0
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8080
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+config:
+  postgres:
+    initConfig:
+      POSTGRES_HOST: postgres-db.infra.svc.cluster.local
+      POSTGRES_USER: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: core
+      APP_DB_USER: charging_station_app
+      APP_SCHEMA: charging_station_schema
+
+    appConfig:
+      DB_USER: charging_station_app
+      DB_HOST: postgres-db.infra.svc.cluster.local
+      DB_PORT: 5432
+      DB_NAME: core
+      DB_SCHEMA: charging_station_schema
+
+  redis:
+    REDIS_HOST: redis.infra.svc.cluster.local
+    REDIS_PORT: "6379"
+
+secret:
+  postgres:
+    ROOT_PASSWORD: mOV0HqXNAWkFhpOe   
+    DB_PASSWORD: 0H5m3yvHFi0FOG7u     
+
+  redis:
+    REDIS_PASSWORD: JcbuS01WKVMTkLW5

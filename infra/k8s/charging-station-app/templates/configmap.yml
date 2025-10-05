@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "charging_station_app.fullname" . }}-config
+data:
+  DB_USER: {{ .Values.config.postgres.appConfig.DB_USER }}
+  DB_HOST: {{ .Values.config.postgres.appConfig.DB_HOST }}
+  DB_PORT: "{{ .Values.config.postgres.appConfig.DB_PORT }}"
+  DB_NAME: {{ .Values.config.postgres.appConfig.DB_NAME }}
+  DB_SCHEMA: {{ .Values.config.postgres.appConfig.DB_SCHEMA }}
+  REDIS_HOST: {{ .Values.config.redis.REDIS_HOST }}
+  REDIS_PORT: "{{ .Values.config.redis.REDIS_PORT }}"
