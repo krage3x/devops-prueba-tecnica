@@ -32,7 +32,7 @@ services:
     restart: always
     user: "redis:redis"
   db_init:
-    image: postgres:15
+    image: postgres:15-alpine
     depends_on:
       - postgres_db
     env_file:
@@ -41,7 +41,6 @@ services:
     volumes:
       - ./entrypoint/init-db.sh:/init-db.sh
 
-  # Monitoring stack prometheus + grafana + alertmanager
   prometheus:
     image: prom/prometheus:v2.49.0
     container_name: prometheus
