@@ -117,6 +117,7 @@ Lo importante es tu criterio: que mejores lo que la IA te sugiera y no lo uses c
 ---
 
 ## Implementación
+
 ### 1. Contenedores y Kubernetes (obligatorio)
 
 **Aplicación:**  
@@ -132,9 +133,9 @@ Lo importante es tu criterio: que mejores lo que la IA te sugiera y no lo uses c
   - La aplicación  
   - Una base de datos **PostgreSQL**  
   - **Redis** como caché  
-  - **Prometheus** para pulling de metricas
-  - **Grafana** Para visualizar dashboards
-  - **Alertmanager** Para recibir alertas
+  - **Prometheus** para pulling de métricas  
+  - **Grafana** para visualizar dashboards  
+  - **Alertmanager** para recibir alertas  
 - Se ha añadido la librería **Prometheus** para exponer métricas del servicio.  
 - Se han creado **dashboards en Grafana** mostrando:  
   - Número total de requests por endpoint  
@@ -142,8 +143,13 @@ Lo importante es tu criterio: que mejores lo que la IA te sugiera y no lo uses c
   - Histograma de latencias  
   - Errores 4xx y 5xx  
 
-**Pendientes:**  
-- Preparar los **manifiestos de Kubernetes** (`Deployment`, `Service`, `ConfigMap/Secret`) para desplegar la aplicación en un cluster (por ejemplo, usando `kind`, `k3d` o `minikube`).  
+**Kubernetes:**  
+- Se han creado **3 charts de Helm**:  
+  1. **Redis**  
+  2. **PostgreSQL**  
+  3. **La aplicación principal**  
+- Los **secrets** se definieron en los `values.yaml` por simplicidad. Se es consciente de que esto no es una buena práctica: idealmente deberían gestionarse mediante un **secret manager** externo, pero por tiempo no se implementó.  
+- La aplicación se **Nodeport**, sin usar un Ingress Controller. Fue debido a falta de tiempo. Aunque en otras desplegando un cluster de k8s al uso sin usar minikube he installado metallb + l2advertisement + ipaddresspool + ingress controller para poder acceder con dominios
 
 ### 2. Automatización (obligatorio)
 
@@ -189,14 +195,19 @@ ansible-playbook -i inventory/hosts playbook.yml -vvvv --vault-password-file .va
   - Errores 4xx/5xx por endpoint y método.  
 - Permiten identificar rápidamente endpoints críticos y su comportamiento.  
 
-**Alertas con Prometheus + Alertmanager:**  
-- Configuración de reglas genéricas de alerta:  
-  - `HighLatencyP90`: dispara si la latencia p90 supera un umbral definido (por ejemplo, >3s).  
-  - `High4xxErrorRate`: dispara si el ratio de errores 4xx supera un umbral (por ejemplo, 10%).  
-- Las alertas se agrupan por `app`, `alertname` en Alertmanager, y se pueden enrutar a distintos receivers si se desea.  
-- Alertmanager permite definir receivers genéricos o específicos para notificaciones (email, webhook, etc.).  
+**Alertas con Prometheus Operator:**  
+- Se configuraron reglas de alerta utilizando el recurso `PrometheusRule`.  
+- Las alertas se gestionan mediante los recursos `Alertmanager` y `AlertmanagerConfig` incluidos en el Prometheus Operator.  
+- Esto permite definir rutas, agrupación de alertas y receptores (emails, webhooks, etc.) de manera declarativa.  
+- Las alertas se agrupan por `app`, `alertname` y se pueden enrutar a distintos receptores según se necesite.  
 
 **Protección del endpoint `/metrics`:**  
 - No se implementó autenticación o TLS por tiempo.  
 - Si la comunicación es **interna en una red privada**, no es necesario proteger el endpoint `/metrics`.  
-- Si se quiere exponer externamente, se recomienda usar un **proxy** que bloquee directamente el acceso a `/metrics` desde fuera de la red privada, evitando que se pueda consultar públicamente.
+- Si se quiere exponer externamente, se recomienda usar un **proxy** que bloquee directamente el acceso a `/metrics` desde fuera de la red privada, evitando que se pueda consultar públicamente.  
+
+**Despliegue en Kubernetes (no realizado):**  
+- No se desplegó la monitorización en Kubernetes, pero la intención sería usar:  
+  - **Prometheus Operator** con un **ServiceMonitor** apuntando a la aplicación para recolectar métricas automáticamente.  
+  - **Grafana Operator** para montar los dashboards generados, de manera que se despliegue con la configuración ya lista.  
+  - La gestión de Alertmanager se realiza directamente mediante los recursos `Alertmanager` y `AlertmanagerConfig` del Prometheus Operator, sin necesidad de un operador adicional.
