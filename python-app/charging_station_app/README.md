@@ -60,6 +60,7 @@ Change to the project's docker directory and run:
    cd docker
    source .db-init.env
    source .postres.env
+   source .grafana.env
    docker compose up -d
    ```
 This will start **four main containers**:
